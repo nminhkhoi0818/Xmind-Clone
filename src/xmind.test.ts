@@ -1,4 +1,4 @@
-import { Xmind, Sheet, Topic, Position } from "./xmind";
+import { Xmind, Sheet, Topic, Position, ExportStatus } from "./xmind";
 
 describe("Mindmap Application", () => {
   describe("Xmind class", () => {
@@ -27,12 +27,12 @@ describe("Mindmap Application", () => {
 
     it("Import a sheet", () => {
       let status = xmind.sheets[0].importSheet("file.xmind");
-      expect(status).toBe(true);
+      expect(status).toBe(ExportStatus.Success);
     });
 
     it("Export a sheet", () => {
       let status = xmind.sheets[0].exportSheet("pdf");
-      expect(status).toBe(true);
+      expect(status).toBe(ExportStatus.Success);
     });
   });
 

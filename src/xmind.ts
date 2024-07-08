@@ -1,3 +1,8 @@
+enum ExportStatus {
+  Success = "Success",
+  Failure = "Failure",
+}
+
 class Xmind {
   sheets: Sheet[];
 
@@ -68,12 +73,12 @@ class Sheet {
     this.floatingTopicList.push(floatingTopic);
   }
 
-  importSheet(importType: string): boolean {
-    return true;
+  importSheet(importType: string): ExportStatus {
+    return ExportStatus.Success;
   }
 
-  exportSheet(exportType: string): boolean {
-    return true;
+  exportSheet(exportType: string): ExportStatus {
+    return ExportStatus.Success;
   }
 
   createRelationship(fromTopicId: number, toTopicId: number): number {
@@ -105,14 +110,10 @@ class Relationship {
   name: string;
 
   constructor(fromTopicId: number, toTopicId: number) {
-    this.id = this.generateId();
+    this.id = Relationship.nextId++;
     this.fromTopicId = fromTopicId;
     this.toTopicId = toTopicId;
     this.name = "Relationship";
-  }
-
-  private generateId() {
-    return Relationship.nextId++;
   }
 
   renameRelationship(newName: string): void {
@@ -131,17 +132,13 @@ class Topic {
   position: Position;
 
   constructor(text: string) {
-    this.id = this.generateId();
+    this.id = Topic.nextId++;
     this.text = text;
     this.subTopics = [];
     this.parent = null;
     this.shape = new Shape("white", "black", 100);
     this.customText = new CustomText(text, 12, "Arial", "normal", "black");
     this.position = new Position(0, 0);
-  }
-
-  private generateId() {
-    return Topic.nextId++;
   }
 
   createSubTopic(text: string): void {
@@ -282,4 +279,4 @@ class Position {
   }
 }
 
-export { Xmind, Sheet, Topic, Relationship, Position };
+export { Xmind, Sheet, Topic, Relationship, Position, ExportStatus };
