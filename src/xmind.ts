@@ -75,9 +75,10 @@ class Sheet {
     return true;
   }
 
-  createRelationship(fromTopicId: number, toTopicId: number): void {
-    const relationship = new Relationship(fromTopicId, toTopicId);
-    this.relationshipList.push(relationship);
+  createRelationship(fromTopicId: number, toTopicId: number): number {
+    const newRelationship = new Relationship(fromTopicId, toTopicId);
+    this.relationshipList.push(newRelationship);
+    return newRelationship.id;
   }
 
   deleteRelationship(relationshipId: number): void {
@@ -88,6 +89,10 @@ class Sheet {
 
   changeBackgroundColor(color: string): void {
     this.backgroundColor = color;
+  }
+
+  saveSheetAs(fileName: string): boolean {
+    return true;
   }
 }
 
@@ -118,6 +123,7 @@ class Topic {
   parent: Topic | null;
   shape: Shape;
   customText: CustomText;
+  position: Position;
 
   constructor(text: string) {
     this.id = Topic.nextId++;
@@ -126,6 +132,7 @@ class Topic {
     this.parent = null;
     this.shape = new Shape("white", "black", 100);
     this.customText = new CustomText(text, 12, "Arial", "normal", "black");
+    this.position = new Position(0, 0);
   }
 
   createSubTopic(text: string): void {
@@ -144,8 +151,6 @@ class Topic {
       const newSubTopic = new Topic(`${subTopic.text} - Copy`);
       newSubTopic.parent = this;
       this.subTopics.push(newSubTopic);
-    } else {
-      throw new Error("Subtopic not found");
     }
   }
 
@@ -157,6 +162,10 @@ class Topic {
     }
     newParentTopic.subTopics.push(this);
     this.parent = newParentTopic;
+  }
+
+  moveToNewPosition(newPosition: Position): void {
+    this.position = newPosition;
   }
 
   updateTextContent(newText: string): void {
@@ -254,4 +263,14 @@ class CustomText {
   }
 }
 
-export { Xmind, Sheet, Topic, Relationship };
+class Position {
+  x: number;
+  y: number;
+
+  constructor(x: number, y: number) {
+    this.x = x;
+    this.y = y;
+  }
+}
+
+export { Xmind, Sheet, Topic, Relationship, Position };

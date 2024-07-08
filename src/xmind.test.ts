@@ -1,4 +1,4 @@
-import { Xmind, Sheet, Topic } from "./xmind";
+import { Xmind, Sheet, Topic, Position } from "./xmind";
 
 describe("Mindmap Application", () => {
   describe("Xmind class", () => {
@@ -33,11 +33,6 @@ describe("Mindmap Application", () => {
     it("Export a sheet", () => {
       let status = xmind.sheets[0].exportSheet("pdf");
       expect(status).toBe(true);
-    });
-
-    it("Change background color", () => {
-      sheet.changeBackgroundColor("blue");
-      expect(sheet.backgroundColor).toBe("blue");
     });
   });
 
@@ -76,11 +71,20 @@ describe("Mindmap Application", () => {
     it("Delete relationship", () => {
       let subTopic1Id = sheet.rootTopic.subTopics[0].id;
       let subTopic2Id = sheet.rootTopic.subTopics[1].id;
-      sheet.createRelationship(subTopic1Id, subTopic2Id);
-      let relationshipId = sheet.relationshipList[0].id;
+      let relationshipId = sheet.createRelationship(subTopic1Id, subTopic2Id);
       sheet.deleteRelationship(relationshipId);
 
       expect(sheet.relationshipList.length).toBe(0);
+    });
+
+    it("Change background color", () => {
+      sheet.changeBackgroundColor("blue");
+      expect(sheet.backgroundColor).toBe("blue");
+    });
+
+    it("Save sheet as", () => {
+      let status = sheet.saveSheetAs("file.xmind");
+      expect(status).toBe(true);
     });
   });
 
@@ -93,15 +97,30 @@ describe("Mindmap Application", () => {
       rootTopic = xmind.sheets[0].rootTopic;
     });
 
-    it("Add a subtopic", () => {
+    it("Add a subtopic into rootnode", () => {
       rootTopic.createSubTopic("Sub Topic");
       expect(rootTopic.subTopics.length).toBe(5);
     });
 
+    it("Add a subtopic into floating node", () => {
+      xmind.sheets[0].createFloatingTopic("Floating Topic");
+      let floatingTopic = xmind.sheets[0].floatingTopicList[0];
+      floatingTopic.createSubTopic("Sub Floating Topic");
+
+      expect(floatingTopic.subTopics.length).toBe(1);
+    });
+
+    it("Add a subtopic into subtopic", () => {
+      let subTopic = rootTopic.subTopics[0];
+      subTopic.createSubTopic("Sub of Sub Topic");
+
+      expect(subTopic.subTopics.length).toBe(1);
+    });
+
     it("Delete a subtopic", () => {
       let subTopicId = rootTopic.subTopics[0].id;
-
       rootTopic.deleteSubTopic(subTopicId);
+
       expect(rootTopic.subTopics.length).toBe(3);
     });
 
@@ -119,6 +138,13 @@ describe("Mindmap Application", () => {
 
       expect(newParentTopic.subTopics.length).toBe(1);
       expect(rootTopic.subTopics.length).toBe(3);
+    });
+
+    it("Move topic to another position", () => {
+      rootTopic.moveToNewPosition(new Position(100, 100));
+
+      expect(rootTopic.position.x).toBe(100);
+      expect(rootTopic.position.y).toBe(100);
     });
 
     it("Update text content of topic", () => {
