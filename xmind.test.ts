@@ -16,27 +16,28 @@ describe("Mindmap Application", () => {
 
     it("Delete a sheet", () => {
       xmind.deleteSheet(sheet);
-
       expect(xmind.sheets.length).toBe(0);
     });
 
     it("Duplicate a sheet", () => {
       sheet = xmind.addNewSheet();
       let sheet2 = xmind.duplicateSheet(sheet);
-
       expect(sheet2.name).toBe("Sheet 2 - Copy");
     });
 
     it("Import a sheet", () => {
       let status = xmind.sheets[0].importSheet("file.xmind");
-
       expect(status).toBe(true);
     });
 
     it("Export a sheet", () => {
       let status = xmind.sheets[0].exportSheet("pdf");
-
       expect(status).toBe(true);
+    });
+
+    it("Change background color", () => {
+      sheet.changeBackgroundColor("blue");
+      expect(sheet.backgroundColor).toBe("blue");
     });
   });
 
@@ -56,14 +57,30 @@ describe("Mindmap Application", () => {
 
     it("Rename a sheet", () => {
       sheet.renameSheet("Sheet 1");
-
       expect(sheet.name).toBe("Sheet 1");
     });
 
     it("Create a floating topic", () => {
       sheet.createFloatingTopic("Floating Topic");
-
       expect(sheet.floatingTopicList.length).toBe(1);
+    });
+
+    it("Create relationship", () => {
+      let subTopic1Id = sheet.rootTopic.subTopics[0].id;
+      let subTopic2Id = sheet.rootTopic.subTopics[1].id;
+      sheet.createRelationship(subTopic1Id, subTopic2Id);
+
+      expect(sheet.relationshipList.length).toBe(1);
+    });
+
+    it("Delete relationship", () => {
+      let subTopic1Id = sheet.rootTopic.subTopics[0].id;
+      let subTopic2Id = sheet.rootTopic.subTopics[1].id;
+      sheet.createRelationship(subTopic1Id, subTopic2Id);
+      let relationshipId = sheet.relationshipList[0].id;
+      sheet.deleteRelationship(relationshipId);
+
+      expect(sheet.relationshipList.length).toBe(0);
     });
   });
 
@@ -76,96 +93,81 @@ describe("Mindmap Application", () => {
       rootTopic = xmind.sheets[0].rootTopic;
     });
 
-    it("should add a subtopic", () => {
+    it("Add a subtopic", () => {
       rootTopic.createSubTopic("Sub Topic");
       expect(rootTopic.subTopics.length).toBe(5);
     });
 
-    it("should delete a subtopic", () => {
+    it("Delete a subtopic", () => {
       let subTopicId = rootTopic.subTopics[0].id;
 
       rootTopic.deleteSubTopic(subTopicId);
       expect(rootTopic.subTopics.length).toBe(3);
     });
 
-    it("should duplicate a subtopic", () => {
+    it("Duplicate a subtopic", () => {
       let subTopicId = rootTopic.subTopics[0].id;
       rootTopic.duplicateSubTopic(subTopicId);
 
       expect(rootTopic.subTopics.length).toBe(5);
     });
 
-    it("should change parent topic", () => {
+    it("Change parent topic", () => {
       let subTopic = rootTopic.subTopics[0];
       let newParentTopic = rootTopic.subTopics[1];
       subTopic.changeParentTopic(newParentTopic);
 
       expect(newParentTopic.subTopics.length).toBe(1);
-      expect(rootTopic.subTopics.length).toBe(4);
+      expect(rootTopic.subTopics.length).toBe(3);
     });
 
-    it("update text topic", () => {
+    it("Update text content of topic", () => {
       let subTopic = rootTopic.subTopics[0];
-      subTopic.updateText("Main topic");
+      subTopic.updateTextContent("Main topic");
 
-      expect(subTopic.text).toBe("Main topic");
+      expect(subTopic.customText.content).toBe("Main topic");
     });
 
-    it("should create relationship", () => {
-      let subTopic1 = rootTopic.subTopics[0];
-      subTopic1.createRelationship(rootTopic.subTopics[1].id);
+    it("Update text color of topic", () => {
+      let subTopic = rootTopic.subTopics[0];
+      subTopic.updateTextColor("red");
 
-      expect(subTopic1.relationships.length).toBe(1);
+      expect(subTopic.customText.textColor).toBe("red");
     });
 
-    it("should delete relationship", () => {
-      let subTopic1 = rootTopic.subTopics[0];
-      let subTopic2 = rootTopic.subTopics[1];
+    it("Update font style of topic", () => {
+      let subTopic = rootTopic.subTopics[0];
+      subTopic.updateTextStyle("bold");
 
-      subTopic1.createRelationship(subTopic2.id);
-      let relationshipId = subTopic1.relationships[0].id;
-
-      subTopic1.deleteRelationship(relationshipId);
-      expect(subTopic1.relationships.length).toBe(0);
+      expect(subTopic.customText.fontStyle).toBe("bold");
     });
 
-    it("should rename relationship", () => {
-      let subTopic1 = rootTopic.subTopics[0];
-      let subTopic2 = rootTopic.subTopics[1];
+    it("Update font size of topic", () => {
+      let subTopic = rootTopic.subTopics[0];
+      subTopic.updateTextSize(20);
 
-      subTopic1.createRelationship(subTopic2.id);
-      let relationship = subTopic1.relationships[0];
-
-      relationship.renameRelationship("New Relationship");
-      expect(relationship.name).toBe("New Relationship");
+      expect(subTopic.customText.fontSize).toBe(20);
     });
 
-    it("should change shape of topic", () => {
+    it("Change shape of topic", () => {
       let subTopic = rootTopic.subTopics[0];
       subTopic.changeShapeColor("red");
 
-      expect(subTopic.shapeColor).toBe("red");
+      expect(subTopic.shape.fillColor).toBe("red");
     });
 
-    it("should change shape length", () => {
+    it("Change shape length", () => {
       let subTopic = rootTopic.subTopics[0];
       subTopic.changeShapeLength(100);
 
-      expect(subTopic.shapeLength).toBe(100);
+      expect(subTopic.shape.length).toBe(100);
     });
 
-    it("should topic text color", () => {
+    it("Change shape border", () => {
       let subTopic = rootTopic.subTopics[0];
-      subTopic.changeTextColor("red");
+      subTopic.changeShapeBorder("dotted");
 
-      expect(subTopic.textColor).toBe("red");
-    });
-
-    it("should topic text style", () => {
-      let subTopic = rootTopic.subTopics[0];
-      subTopic.changeTextStyle("bold");
-
-      expect(subTopic.textStyle).toBe("bold");
+      expect(subTopic.shape.border).toBe("dotted");
     });
   });
 });

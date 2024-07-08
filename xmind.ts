@@ -3,7 +3,16 @@ class Xmind {
 
   constructor() {
     this.sheets = [];
-    this.sheets.push(new Sheet(`Sheet 1`));
+    this.createDefaultSheet();
+  }
+
+  createDefaultSheet(): void {
+    let sheet = new Sheet("Sheet 1", new Topic("Central Topic"));
+    sheet.rootTopic.createSubTopic("Subtopic 1");
+    sheet.rootTopic.createSubTopic("Subtopic 2");
+    sheet.rootTopic.createSubTopic("Subtopic 3");
+    sheet.rootTopic.createSubTopic("Subtopic 4");
+    this.sheets.push(sheet);
   }
 
   addNewSheet(): Sheet {
@@ -17,9 +26,14 @@ class Xmind {
   }
 
   duplicateSheet(sheet: Sheet): Sheet {
-    const newSheet = new Sheet(`${sheet.name} - Copy`);
-    this.sheets.push(newSheet);
-    return newSheet;
+    const copySheet = new Sheet(
+      `${sheet.name} - Copy`,
+      sheet.rootTopic,
+      sheet.floatingTopicList,
+      sheet.relationshipList
+    );
+    this.sheets.push(copySheet);
+    return copySheet;
   }
 }
 
@@ -27,17 +41,21 @@ class Sheet {
   name: string;
   rootTopic: Topic;
   floatingTopicList: Topic[];
+  relationshipList: Relationship[];
+  backgroundColor: string;
 
-  constructor(name: string) {
+  constructor(
+    name: string,
+    rootTopic: Topic = new Topic(""),
+    floatingTopicList: Topic[] = [],
+    relationshipList: Relationship[] = [],
+    backgroundColor: string = "white"
+  ) {
     this.name = name;
-    this.rootTopic = new Topic("Central Topic");
-    this.rootTopic.subTopics = [
-      new Topic("Subtopic 1"),
-      new Topic("Subtopic 2"),
-      new Topic("Subtopic 3"),
-      new Topic("Subtopic 4"),
-    ];
-    this.floatingTopicList = [];
+    this.rootTopic = rootTopic;
+    this.floatingTopicList = floatingTopicList;
+    this.relationshipList = relationshipList;
+    this.backgroundColor = backgroundColor;
   }
 
   renameSheet(newName: string): void {
@@ -56,33 +74,58 @@ class Sheet {
   exportSheet(exportType: string): boolean {
     return true;
   }
+
+  createRelationship(fromTopicId: number, toTopicId: number): void {
+    const relationship = new Relationship(fromTopicId, toTopicId);
+    this.relationshipList.push(relationship);
+  }
+
+  deleteRelationship(relationshipId: number): void {
+    this.relationshipList = this.relationshipList.filter(
+      (relationship) => relationship.id !== relationshipId
+    );
+  }
+
+  changeBackgroundColor(color: string): void {
+    this.backgroundColor = color;
+  }
+}
+
+class Relationship {
+  static nextId: number = 1;
+  id: number;
+  fromTopicId: number;
+  toTopicId: number;
+  name: string;
+
+  constructor(fromTopicId: number, toTopicId: number) {
+    this.id = Relationship.nextId++;
+    this.fromTopicId = fromTopicId;
+    this.toTopicId = toTopicId;
+    this.name = "Relationship";
+  }
+
+  renameRelationship(newName: string): void {
+    this.name = newName;
+  }
 }
 
 class Topic {
-  id: string;
+  static nextId: number = 1;
+  id: number;
   text: string;
   subTopics: Topic[];
   parent: Topic | null;
-  relationships: Relationship[];
-  shapeColor: string;
-  shapeLength: number;
-  textColor: string;
-  textStyle: string;
+  shape: Shape;
+  customText: CustomText;
 
   constructor(text: string) {
-    this.id = this.generateId();
+    this.id = Topic.nextId++;
     this.text = text;
     this.subTopics = [];
     this.parent = null;
-    this.relationships = [];
-    this.shapeColor = "";
-    this.shapeLength = 0;
-    this.textColor = "";
-    this.textStyle = "";
-  }
-
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 15);
+    this.shape = new Shape("white", "black", 100);
+    this.customText = new CustomText(text, 12, "Arial", "normal", "black");
   }
 
   createSubTopic(text: string): void {
@@ -91,11 +134,11 @@ class Topic {
     this.subTopics.push(subTopic);
   }
 
-  deleteSubTopic(subTopicId: string): void {
+  deleteSubTopic(subTopicId: number): void {
     this.subTopics = this.subTopics.filter((topic) => topic.id !== subTopicId);
   }
 
-  duplicateSubTopic(subTopicId: string): void {
+  duplicateSubTopic(subTopicId: number): void {
     const subTopic = this.subTopics.find((topic) => topic.id === subTopicId);
     if (subTopic) {
       const newSubTopic = new Topic(`${subTopic.text} - Copy`);
@@ -116,55 +159,98 @@ class Topic {
     this.parent = newParentTopic;
   }
 
-  updateText(newText: string): void {
-    this.text = newText;
+  updateTextContent(newText: string): void {
+    this.customText.updateContent(newText);
   }
 
-  createRelationship(topicId: string): void {
-    const relationship = new Relationship(topicId);
-    this.relationships.push(relationship);
+  updateTextColor(color: string): void {
+    this.customText.updateTextColor(color);
   }
 
-  deleteRelationship(relationshipId: string): void {
-    this.relationships = this.relationships.filter(
-      (rel) => rel.id !== relationshipId
-    );
+  updateTextStyle(style: string): void {
+    this.customText.updateFontStyle(style);
+  }
+
+  updateTextSize(size: number): void {
+    this.customText.updateFontSize(size);
   }
 
   changeShapeColor(color: string): void {
-    this.shapeColor = color;
+    this.shape.updateFillColor(color);
   }
 
   changeShapeLength(length: number): void {
-    this.shapeLength = length;
+    this.shape.updateLength(length);
   }
 
-  changeTextColor(color: string): void {
-    this.textColor = color;
-  }
-
-  changeTextStyle(style: string): void {
-    this.textStyle = style;
+  changeShapeBorder(border: string): void {
+    this.shape.updateBorder(border);
   }
 }
 
-class Relationship {
-  id: string;
-  topicId: string;
-  name: string;
+class Shape {
+  fillColor: string;
+  border: string;
+  length: number;
 
-  constructor(topicId: string) {
-    this.id = this.generateId();
-    this.topicId = topicId;
-    this.name = "";
+  constructor(fillColor: string, border: string, length: number) {
+    this.fillColor = fillColor;
+    this.border = border;
+    this.length = length;
   }
 
-  private generateId(): string {
-    return Math.random().toString(36).substring(2, 15);
+  updateFillColor(fillColor: string) {
+    this.fillColor = fillColor;
   }
 
-  renameRelationship(newName: string): void {
-    this.name = newName;
+  updateBorder(border: string) {
+    this.border = border;
+  }
+
+  updateLength(length: number) {
+    this.length = length;
+  }
+}
+
+class CustomText {
+  content: string;
+  fontSize: number;
+  fontFamily: string;
+  fontStyle: string;
+  textColor: string;
+
+  constructor(
+    content: string,
+    fontSize: number,
+    fontFamily: string,
+    fontStyle: string,
+    textColor: string
+  ) {
+    this.content = content;
+    this.fontSize = fontSize;
+    this.fontFamily = fontFamily;
+    this.fontStyle = fontStyle;
+    this.textColor = textColor;
+  }
+
+  updateContent(content: string) {
+    this.content = content;
+  }
+
+  updateFontSize(fontSize: number) {
+    this.fontSize = fontSize;
+  }
+
+  updateFontFamily(fontFamily: string) {
+    this.fontFamily = fontFamily;
+  }
+
+  updateFontStyle(fontStyle: string) {
+    this.fontStyle = fontStyle;
+  }
+
+  updateTextColor(textColor: string) {
+    this.textColor = textColor;
   }
 }
 
