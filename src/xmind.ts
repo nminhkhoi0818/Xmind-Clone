@@ -199,6 +199,10 @@ class Topic {
     this.customText.updateFontSize(size);
   }
 
+  updateFontFamily(fontFamily: string): void {
+    this.customText.updateFontFamily(fontFamily);
+  }
+
   changeShapeColor(color: string): void {
     this.shape.updateFillColor(color);
   }

@@ -77,6 +77,15 @@ describe("Mindmap Application", () => {
       expect(sheet.relationshipList.length).toBe(0);
     });
 
+    it("Rename relationship", () => {
+      let subTopic1Id = sheet.rootTopic.subTopics[0].id;
+      let subTopic2Id = sheet.rootTopic.subTopics[1].id;
+      sheet.createRelationship(subTopic1Id, subTopic2Id);
+      sheet.relationshipList[0].renameRelationship("Special Relationship");
+
+      expect(sheet.relationshipList[0].name).toBe("Special Relationship");
+    });
+
     it("Change background color", () => {
       sheet.changeBackgroundColor("blue");
       expect(sheet.backgroundColor).toBe("blue");
@@ -174,6 +183,13 @@ describe("Mindmap Application", () => {
       subTopic.updateTextStyle("bold");
 
       expect(subTopic.customText.fontStyle).toBe("bold");
+    });
+
+    it("Update font family of topic", () => {
+      let subTopic = rootTopic.subTopics[0];
+      subTopic.updateFontFamily("Arial");
+
+      expect(subTopic.customText.fontFamily).toBe("Arial");
     });
 
     it("Update font size of topic", () => {
