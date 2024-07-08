@@ -1,4 +1,4 @@
-import { Xmind, Sheet, Topic, Position, ExportStatus } from "./xmind";
+import { Xmind, Sheet, Topic, Position, Status } from "./xmind";
 
 describe("Mindmap Application", () => {
   describe("Xmind class", () => {
@@ -27,12 +27,12 @@ describe("Mindmap Application", () => {
 
     it("Import a sheet", () => {
       let status = xmind.sheets[0].importSheet("file.xmind");
-      expect(status).toBe(ExportStatus.Success);
+      expect(status).toBe(Status.Success);
     });
 
     it("Export a sheet", () => {
       let status = xmind.sheets[0].exportSheet("pdf");
-      expect(status).toBe(ExportStatus.Success);
+      expect(status).toBe(Status.Success);
     });
   });
 
@@ -84,7 +84,7 @@ describe("Mindmap Application", () => {
 
     it("Save sheet as", () => {
       let status = sheet.saveSheetAs("file.xmind");
-      expect(status).toBe(true);
+      expect(status).toBe(Status.Success);
     });
 
     it("Move topic to floating topic", () => {

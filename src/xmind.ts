@@ -1,4 +1,4 @@
-enum ExportStatus {
+enum Status {
   Success = "Success",
   Failure = "Failure",
 }
@@ -73,12 +73,12 @@ class Sheet {
     this.floatingTopicList.push(floatingTopic);
   }
 
-  importSheet(importType: string): ExportStatus {
-    return ExportStatus.Success;
+  importSheet(importType: string): Status {
+    return Status.Success;
   }
 
-  exportSheet(exportType: string): ExportStatus {
-    return ExportStatus.Success;
+  exportSheet(exportType: string): Status {
+    return Status.Success;
   }
 
   createRelationship(fromTopicId: number, toTopicId: number): number {
@@ -97,8 +97,8 @@ class Sheet {
     this.backgroundColor = color;
   }
 
-  saveSheetAs(fileName: string): boolean {
-    return true;
+  saveSheetAs(fileName: string): Status {
+    return Status.Success;
   }
 
   moveTopicToFloatingTopic(topicId: number): void {
@@ -288,4 +288,4 @@ class Position {
   }
 }
 
-export { Xmind, Sheet, Topic, Relationship, Position, ExportStatus };
+export { Xmind, Sheet, Topic, Relationship, Position, Status };
