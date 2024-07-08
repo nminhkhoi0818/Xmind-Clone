@@ -30,7 +30,8 @@ class Xmind {
       `${sheet.name} - Copy`,
       sheet.rootTopic,
       sheet.floatingTopicList,
-      sheet.relationshipList
+      sheet.relationshipList,
+      sheet.backgroundColor
     );
     this.sheets.push(copySheet);
     return copySheet;
@@ -97,17 +98,21 @@ class Sheet {
 }
 
 class Relationship {
-  static nextId: number = 1;
+  private static nextId: number = 1;
   id: number;
   fromTopicId: number;
   toTopicId: number;
   name: string;
 
   constructor(fromTopicId: number, toTopicId: number) {
-    this.id = Relationship.nextId++;
+    this.id = this.generateId();
     this.fromTopicId = fromTopicId;
     this.toTopicId = toTopicId;
     this.name = "Relationship";
+  }
+
+  private generateId() {
+    return Relationship.nextId++;
   }
 
   renameRelationship(newName: string): void {
@@ -116,7 +121,7 @@ class Relationship {
 }
 
 class Topic {
-  static nextId: number = 1;
+  private static nextId: number = 1;
   id: number;
   text: string;
   subTopics: Topic[];
@@ -126,13 +131,17 @@ class Topic {
   position: Position;
 
   constructor(text: string) {
-    this.id = Topic.nextId++;
+    this.id = this.generateId();
     this.text = text;
     this.subTopics = [];
     this.parent = null;
     this.shape = new Shape("white", "black", 100);
     this.customText = new CustomText(text, 12, "Arial", "normal", "black");
     this.position = new Position(0, 0);
+  }
+
+  private generateId() {
+    return Topic.nextId++;
   }
 
   createSubTopic(text: string): void {
