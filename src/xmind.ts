@@ -3,10 +3,10 @@ class Xmind {
 
   constructor() {
     this.sheets = [];
-    this.createDefaultSheet();
+    this.createDefaultMindmap();
   }
 
-  createDefaultSheet(): void {
+  createDefaultMindmap(): void {
     let sheet = new Sheet("Sheet 1", new Topic("Central Topic"));
     sheet.rootTopic.createSubTopic("Subtopic 1");
     sheet.rootTopic.createSubTopic("Subtopic 2");
