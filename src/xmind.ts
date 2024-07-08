@@ -100,6 +100,15 @@ class Sheet {
   saveSheetAs(fileName: string): boolean {
     return true;
   }
+
+  moveTopicToFloatingTopic(topicId: number): void {
+    const topic = this.rootTopic.subTopics.find(
+      (topic) => topic.id === topicId
+    );
+    if (!topic) return;
+    this.floatingTopicList.push(topic);
+    topic.parent?.deleteSubTopic(topicId);
+  }
 }
 
 class Relationship {

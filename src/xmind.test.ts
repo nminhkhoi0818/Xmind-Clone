@@ -86,6 +86,14 @@ describe("Mindmap Application", () => {
       let status = sheet.saveSheetAs("file.xmind");
       expect(status).toBe(true);
     });
+
+    it("Move topic to floating topic", () => {
+      let subTopicId = sheet.rootTopic.subTopics[0].id;
+      sheet.moveTopicToFloatingTopic(subTopicId);
+
+      expect(sheet.rootTopic.subTopics.length).toBe(3);
+      expect(sheet.floatingTopicList.length).toBe(1);
+    });
   });
 
   describe("Topic class", () => {
