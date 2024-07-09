@@ -6,29 +6,18 @@ enum Status {
 }
 
 class Xmind {
+  sheetFileManager: SheetFileManager;
   sheets: Sheet[];
 
   constructor() {
+    this.sheetFileManager = new SheetFileManager();
     this.sheets = [];
-    this.createDefaultMindmap();
-  }
-
-  createDefaultMindmap(): Sheet {
-    let sheet = new Sheet(
-      `Sheet ${this.sheets.length + 1}`,
-      new Topic(defaultConfig.rootTopic.name)
-    );
-    const mainTopics = defaultConfig.mainTopics;
-    mainTopics.forEach((mainTopicName) => {
-      sheet.rootTopic.createSubTopic(mainTopicName);
-    });
-    sheet.backgroundColor = defaultConfig.sheet.backgroundColor;
-    this.sheets.push(sheet);
-    return sheet;
+    this.addNewSheet();
   }
 
   addNewSheet(): Sheet {
-    const newSheet = this.createDefaultMindmap();
+    const newSheet = new Sheet(`Sheet ${this.sheets.length + 1}`);
+    this.sheets.push(newSheet);
     return newSheet;
   }
 
@@ -38,14 +27,9 @@ class Xmind {
 
   duplicateSheet(sheetId: number): Sheet {
     const sheet = this.sheets.find((s) => s.id === sheetId);
-    if (!sheet) return new Sheet("");
-    const copySheet = new Sheet(
-      `${sheet.name} - Copy`,
-      sheet.rootTopic,
-      sheet.floatingTopicList,
-      sheet.relationshipList,
-      sheet.backgroundColor
-    );
+    if (!sheet) throw new Error("Sheet not found");
+
+    const copySheet = sheet.clone();
     this.sheets.push(copySheet);
     return copySheet;
   }
@@ -66,10 +50,10 @@ class Sheet {
 
   constructor(
     name: string,
-    rootTopic: Topic = new Topic(""),
+    rootTopic: Topic = this.createRootTopicDefault(),
     floatingTopicList: Topic[] = [],
     relationshipList: Relationship[] = [],
-    backgroundColor: string = "white"
+    backgroundColor: string = defaultConfig.sheet.backgroundColor
   ) {
     this.id = Sheet.nextId++;
     this.name = name;
@@ -77,6 +61,15 @@ class Sheet {
     this.floatingTopicList = floatingTopicList;
     this.relationshipList = relationshipList;
     this.backgroundColor = backgroundColor;
+  }
+
+  createRootTopicDefault(): Topic {
+    let rootTopic = new Topic(defaultConfig.rootTopic.name);
+    const mainTopics = defaultConfig.mainTopics;
+    mainTopics.forEach((mainTopicName) => {
+      rootTopic.createSubTopic(mainTopicName);
+    });
+    return rootTopic;
   }
 
   renameSheet(newName: string): void {
@@ -112,9 +105,19 @@ class Sheet {
     this.floatingTopicList.push(topic);
     topic.parent?.deleteSubTopic(topicId);
   }
+
+  clone() {
+    return new Sheet(
+      `${this.name} - Copy`,
+      this.rootTopic,
+      this.floatingTopicList,
+      this.relationshipList,
+      this.backgroundColor
+    );
+  }
 }
 
-class SheetManager {
+class SheetFileManager {
   importSheet(fileName: string): Status {
     return Status.Success;
   }
@@ -139,7 +142,7 @@ class Relationship {
     this.id = Relationship.nextId++;
     this.fromTopicId = fromTopicId;
     this.toTopicId = toTopicId;
-    this.name = "Relationship";
+    this.name = defaultConfig.relationship.name;
   }
 
   renameRelationship(newName: string): void {
@@ -162,9 +165,22 @@ class Topic {
     this.text = text;
     this.subTopics = [];
     this.parent = null;
-    this.shape = new Shape("white", "black", 100);
-    this.customText = new CustomText(text, 12, "Arial", "normal", "black");
-    this.position = new Position(0, 0);
+    this.shape = new Shape(
+      defaultConfig.topic.defaultShape.fillColor,
+      defaultConfig.topic.defaultShape.border,
+      defaultConfig.topic.defaultShape.length
+    );
+    this.customText = new CustomText(
+      text,
+      defaultConfig.topic.defaultText.fontSize,
+      defaultConfig.topic.defaultText.fontFamily,
+      defaultConfig.topic.defaultText.fontStyle,
+      defaultConfig.topic.defaultText.textColor
+    );
+    this.position = new Position(
+      defaultConfig.topic.defaultPosition.x,
+      defaultConfig.topic.defaultPosition.y
+    );
   }
 
   createSubTopic(text: string): void {
@@ -179,19 +195,19 @@ class Topic {
 
   duplicateSubTopic(subTopicId: number): void {
     const subTopic = this.subTopics.find((topic) => topic.id === subTopicId);
-    if (subTopic) {
-      const newSubTopic = new Topic(`${subTopic.text} - Copy`);
-      newSubTopic.parent = this;
-      this.subTopics.push(newSubTopic);
-    }
+    if (!subTopic) throw new Error("Subtopic not found");
+
+    const newSubTopic = new Topic(subTopic.text);
+    newSubTopic.parent = this;
+    this.subTopics.push(newSubTopic);
   }
 
   changeParentTopic(newParentTopic: Topic): void {
-    if (this.parent) {
-      this.parent.subTopics = this.parent.subTopics.filter(
-        (topic) => topic.id !== this.id
-      );
-    }
+    if (!this.parent) throw new Error("Parent topic not found");
+
+    this.parent.subTopics = this.parent.subTopics.filter(
+      (topic) => topic.id !== this.id
+    );
     newParentTopic.subTopics.push(this);
     this.parent = newParentTopic;
   }
@@ -309,4 +325,4 @@ class Position {
   }
 }
 
-export { Xmind, Sheet, Topic, Relationship, Position, Status, SheetManager };
+export { Xmind, Sheet, Topic, Relationship, Position, Status };

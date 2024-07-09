@@ -6,4 +6,24 @@ export const defaultConfig = {
   rootTopic: {
     name: "Central Topic",
   },
+  topic: {
+    defaultShape: {
+      fillColor: "white",
+      border: "black",
+      length: 100,
+    },
+    defaultText: {
+      fontSize: 12,
+      fontFamily: "Arial",
+      fontStyle: "normal",
+      textColor: "black",
+    },
+    defaultPosition: {
+      x: 0,
+      y: 0,
+    },
+  },
+  relationship: {
+    name: "relationship",
+  },
 };
