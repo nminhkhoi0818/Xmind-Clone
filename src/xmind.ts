@@ -1,3 +1,5 @@
+import { defaultConfig } from "./mindmapConfig";
+
 enum Status {
   Success = "Success",
   Failure = "Failure",
@@ -11,26 +13,32 @@ class Xmind {
     this.createDefaultMindmap();
   }
 
-  createDefaultMindmap(): void {
-    let sheet = new Sheet("Sheet 1", new Topic("Central Topic"));
-    sheet.rootTopic.createSubTopic("Subtopic 1");
-    sheet.rootTopic.createSubTopic("Subtopic 2");
-    sheet.rootTopic.createSubTopic("Subtopic 3");
-    sheet.rootTopic.createSubTopic("Subtopic 4");
+  createDefaultMindmap(): Sheet {
+    let sheet = new Sheet(
+      `Sheet ${this.sheets.length + 1}`,
+      new Topic(defaultConfig.rootTopic.name)
+    );
+    const mainTopics = defaultConfig.mainTopics;
+    mainTopics.forEach((mainTopicName) => {
+      sheet.rootTopic.createSubTopic(mainTopicName);
+    });
+    sheet.backgroundColor = defaultConfig.sheet.backgroundColor;
     this.sheets.push(sheet);
+    return sheet;
   }
 
   addNewSheet(): Sheet {
-    const newSheet = new Sheet(`Sheet ${this.sheets.length + 1}`);
-    this.sheets.push(newSheet);
+    const newSheet = this.createDefaultMindmap();
     return newSheet;
   }
 
-  deleteSheet(sheet: Sheet): void {
-    this.sheets = this.sheets.filter((s) => s !== sheet);
+  deleteSheet(sheetId: number): void {
+    this.sheets = this.sheets.filter((s) => s.id !== sheetId);
   }
 
-  duplicateSheet(sheet: Sheet): Sheet {
+  duplicateSheet(sheetId: number): Sheet {
+    const sheet = this.sheets.find((s) => s.id === sheetId);
+    if (!sheet) return new Sheet("");
     const copySheet = new Sheet(
       `${sheet.name} - Copy`,
       sheet.rootTopic,
@@ -41,14 +49,20 @@ class Xmind {
     this.sheets.push(copySheet);
     return copySheet;
   }
+
+  getFirstSheet(): Sheet {
+    return this.sheets[0];
+  }
 }
 
 class Sheet {
+  id: number;
   name: string;
   rootTopic: Topic;
   floatingTopicList: Topic[];
   relationshipList: Relationship[];
   backgroundColor: string;
+  private static nextId: number = 1;
 
   constructor(
     name: string,
@@ -57,6 +71,7 @@ class Sheet {
     relationshipList: Relationship[] = [],
     backgroundColor: string = "white"
   ) {
+    this.id = Sheet.nextId++;
     this.name = name;
     this.rootTopic = rootTopic;
     this.floatingTopicList = floatingTopicList;
@@ -71,14 +86,6 @@ class Sheet {
   createFloatingTopic(name: string): void {
     const floatingTopic = new Topic(name);
     this.floatingTopicList.push(floatingTopic);
-  }
-
-  importSheet(importType: string): Status {
-    return Status.Success;
-  }
-
-  exportSheet(exportType: string): Status {
-    return Status.Success;
   }
 
   createRelationship(fromTopicId: number, toTopicId: number): number {
@@ -97,26 +104,36 @@ class Sheet {
     this.backgroundColor = color;
   }
 
-  saveSheetAs(fileName: string): Status {
-    return Status.Success;
-  }
-
   moveTopicToFloatingTopic(topicId: number): void {
     const topic = this.rootTopic.subTopics.find(
       (topic) => topic.id === topicId
     );
-    if (!topic) return;
+    if (!topic) throw new Error("Topic not found");
     this.floatingTopicList.push(topic);
     topic.parent?.deleteSubTopic(topicId);
   }
 }
 
+class SheetManager {
+  importSheet(fileName: string): Status {
+    return Status.Success;
+  }
+
+  exportSheet(sheetId: number, exportType: string): Status {
+    return Status.Success;
+  }
+
+  saveSheetAs(sheetId: number, fileName: string): Status {
+    return Status.Success;
+  }
+}
+
 class Relationship {
-  private static nextId: number = 1;
   id: number;
   fromTopicId: number;
   toTopicId: number;
   name: string;
+  private static nextId: number = 1;
 
   constructor(fromTopicId: number, toTopicId: number) {
     this.id = Relationship.nextId++;
@@ -131,7 +148,6 @@ class Relationship {
 }
 
 class Topic {
-  private static nextId: number = 1;
   id: number;
   text: string;
   subTopics: Topic[];
@@ -139,6 +155,7 @@ class Topic {
   shape: Shape;
   customText: CustomText;
   position: Position;
+  private static nextId: number = 1;
 
   constructor(text: string) {
     this.id = Topic.nextId++;
@@ -292,4 +309,4 @@ class Position {
   }
 }
 
-export { Xmind, Sheet, Topic, Relationship, Position, Status };
+export { Xmind, Sheet, Topic, Relationship, Position, Status, SheetManager };

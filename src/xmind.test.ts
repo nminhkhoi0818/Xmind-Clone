@@ -1,4 +1,4 @@
-import { Xmind, Sheet, Topic, Position, Status } from "./xmind";
+import { Xmind, Sheet, Topic, Position, SheetManager } from "./xmind";
 
 describe("Mindmap Application", () => {
   describe("Xmind class", () => {
@@ -7,7 +7,7 @@ describe("Mindmap Application", () => {
 
     beforeEach(() => {
       xmind = new Xmind();
-      sheet = xmind.sheets[0];
+      sheet = xmind.getFirstSheet();
     });
 
     it("Sheet creation", () => {
@@ -15,24 +15,15 @@ describe("Mindmap Application", () => {
     });
 
     it("Delete a sheet", () => {
-      xmind.deleteSheet(sheet);
+      xmind.deleteSheet(sheet.id);
       expect(xmind.sheets.length).toBe(0);
     });
 
     it("Duplicate a sheet", () => {
-      sheet = xmind.addNewSheet();
-      let sheet2 = xmind.duplicateSheet(sheet);
-      expect(sheet2.name).toBe("Sheet 2 - Copy");
-    });
-
-    it("Import a sheet", () => {
-      let status = xmind.sheets[0].importSheet("file.xmind");
-      expect(status).toBe(Status.Success);
-    });
-
-    it("Export a sheet", () => {
-      let status = xmind.sheets[0].exportSheet("pdf");
-      expect(status).toBe(Status.Success);
+      let sheetDuplicate = xmind.duplicateSheet(sheet.id);
+      expect(sheetDuplicate.name).toBe("Sheet 1 - Copy");
+      expect(sheetDuplicate.rootTopic.text).toBe("Central Topic");
+      expect(sheetDuplicate.rootTopic.subTopics.length).toBe(4);
     });
   });
 
@@ -42,7 +33,7 @@ describe("Mindmap Application", () => {
 
     beforeEach(() => {
       xmind = new Xmind();
-      sheet = xmind.sheets[0];
+      sheet = xmind.getFirstSheet();
     });
 
     it("Root topic creation", () => {
@@ -91,11 +82,6 @@ describe("Mindmap Application", () => {
       expect(sheet.backgroundColor).toBe("blue");
     });
 
-    it("Save sheet as", () => {
-      let status = sheet.saveSheetAs("file.xmind");
-      expect(status).toBe(Status.Success);
-    });
-
     it("Move topic to floating topic", () => {
       let subTopicId = sheet.rootTopic.subTopics[0].id;
       sheet.moveTopicToFloatingTopic(subTopicId);
@@ -105,13 +91,37 @@ describe("Mindmap Application", () => {
     });
   });
 
+  describe("SheetManager class", () => {
+    let xmind: Xmind;
+    let sheetManager: SheetManager;
+
+    beforeEach(() => {
+      xmind = new Xmind();
+      sheetManager = new SheetManager();
+    });
+
+    it("Export to image", () => {
+      let sheetId = xmind.getFirstSheet().id;
+      sheetManager.exportSheet(sheetId, "img");
+    });
+
+    it("Import from file .xmind", () => {
+      sheetManager.importSheet("file.xmind");
+    });
+
+    it("Save sheet as .xmind", () => {
+      let sheetId = xmind.getFirstSheet().id;
+      sheetManager.saveSheetAs(sheetId, "file.xmind");
+    });
+  });
+
   describe("Topic class", () => {
     let xmind: Xmind;
     let rootTopic: Topic;
 
     beforeEach(() => {
       xmind = new Xmind();
-      rootTopic = xmind.sheets[0].rootTopic;
+      rootTopic = xmind.getFirstSheet().rootTopic;
     });
 
     it("Add a subtopic into rootnode", () => {
@@ -120,8 +130,8 @@ describe("Mindmap Application", () => {
     });
 
     it("Add a subtopic into floating node", () => {
-      xmind.sheets[0].createFloatingTopic("Floating Topic");
-      let floatingTopic = xmind.sheets[0].floatingTopicList[0];
+      xmind.getFirstSheet().createFloatingTopic("Floating Topic");
+      let floatingTopic = xmind.getFirstSheet().floatingTopicList[0];
       floatingTopic.createSubTopic("Sub Floating Topic");
 
       expect(floatingTopic.subTopics.length).toBe(1);
