@@ -1,4 +1,4 @@
-import { Xmind, Sheet, Topic, Position, SheetManager } from "./xmind";
+import { Xmind, Sheet, Topic, Position, Status } from "./xmind";
 
 describe("Mindmap Application", () => {
   describe("Xmind class", () => {
@@ -91,27 +91,31 @@ describe("Mindmap Application", () => {
     });
   });
 
-  describe("SheetManager class", () => {
+  describe("sheetFileManager class", () => {
     let xmind: Xmind;
-    let sheetManager: SheetManager;
 
     beforeEach(() => {
       xmind = new Xmind();
-      sheetManager = new SheetManager();
     });
 
     it("Export to image", () => {
       let sheetId = xmind.getFirstSheet().id;
-      sheetManager.exportSheet(sheetId, "img");
+      let status = xmind.sheetFileManager.exportSheet(sheetId, "img");
+
+      expect(status).toBe(Status.Success);
     });
 
     it("Import from file .xmind", () => {
-      sheetManager.importSheet("file.xmind");
+      let status = xmind.sheetFileManager.importSheet("file.xmind");
+
+      expect(status).toBe(Status.Success);
     });
 
     it("Save sheet as .xmind", () => {
       let sheetId = xmind.getFirstSheet().id;
-      sheetManager.saveSheetAs(sheetId, "file.xmind");
+      let status = xmind.sheetFileManager.saveSheetAs(sheetId, "file.xmind");
+
+      expect(status).toBe(Status.Success);
     });
   });
 
