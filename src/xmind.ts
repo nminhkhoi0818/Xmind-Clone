@@ -1,8 +1,10 @@
 import { defaultConfig } from "./mindmapConfig";
+import { v4 as uuidv4 } from "uuid";
+import { cloneDeep } from "lodash";
 
-enum Status {
-  Success = "Success",
-  Failure = "Failure",
+enum EnumStatus {
+  Success,
+  Failure,
 }
 
 class Xmind {
@@ -15,52 +17,37 @@ class Xmind {
     this.addNewSheet();
   }
 
-  addNewSheet(): Sheet {
+  addNewSheet() {
     const newSheet = new Sheet(`Sheet ${this.sheets.length + 1}`);
     this.sheets.push(newSheet);
-    return newSheet;
   }
 
-  deleteSheet(sheetId: number): void {
+  deleteSheet(sheetId: string) {
     this.sheets = this.sheets.filter((s) => s.id !== sheetId);
   }
 
-  duplicateSheet(sheetId: number): Sheet {
+  duplicateSheet(sheetId: string) {
     const sheet = this.sheets.find((s) => s.id === sheetId);
-    if (!sheet) throw new Error("Sheet not found");
-
-    const copySheet = sheet.clone();
-    this.sheets.push(copySheet);
-    return copySheet;
-  }
-
-  getFirstSheet(): Sheet {
-    return this.sheets[0];
+    const deepCopy = cloneDeep(sheet);
+    this.sheets.push(deepCopy!);
   }
 }
 
 class Sheet {
-  id: number;
+  id: string;
   name: string;
   rootTopic: Topic;
   floatingTopicList: Topic[];
   relationshipList: Relationship[];
   backgroundColor: string;
-  private static nextId: number = 1;
 
-  constructor(
-    name: string,
-    rootTopic: Topic = this.createRootTopicDefault(),
-    floatingTopicList: Topic[] = [],
-    relationshipList: Relationship[] = [],
-    backgroundColor: string = defaultConfig.sheet.backgroundColor
-  ) {
-    this.id = Sheet.nextId++;
+  constructor(name: string) {
+    this.id = uuidv4();
     this.name = name;
-    this.rootTopic = rootTopic;
-    this.floatingTopicList = floatingTopicList;
-    this.relationshipList = relationshipList;
-    this.backgroundColor = backgroundColor;
+    this.rootTopic = this.createRootTopicDefault();
+    this.floatingTopicList = [];
+    this.relationshipList = [];
+    this.backgroundColor = defaultConfig.sheet.backgroundColor;
   }
 
   createRootTopicDefault(): Topic {
@@ -81,67 +68,38 @@ class Sheet {
     this.floatingTopicList.push(floatingTopic);
   }
 
-  createRelationship(fromTopicId: number, toTopicId: number): number {
+  createRelationship(fromTopicId: string, toTopicId: string): void {
     const newRelationship = new Relationship(fromTopicId, toTopicId);
     this.relationshipList.push(newRelationship);
-    return newRelationship.id;
   }
 
-  deleteRelationship(relationshipId: number): void {
+  deleteRelationship(relationshipId: string): void {
     this.relationshipList = this.relationshipList.filter(
       (relationship) => relationship.id !== relationshipId
     );
   }
 
-  changeBackgroundColor(color: string): void {
-    this.backgroundColor = color;
-  }
-
-  moveTopicToFloatingTopic(topicId: number): void {
+  moveTopicToFloatingTopic(topicId: string): void {
     const topic = this.rootTopic.subTopics.find(
       (topic) => topic.id === topicId
     );
-    if (!topic) throw new Error("Topic not found");
-    this.floatingTopicList.push(topic);
-    topic.parent?.deleteSubTopic(topicId);
+    this.floatingTopicList.push(topic!);
+    topic!.parent?.deleteSubTopic(topicId);
   }
 
-  clone() {
-    return new Sheet(
-      `${this.name} - Copy`,
-      this.rootTopic,
-      this.floatingTopicList,
-      this.relationshipList,
-      this.backgroundColor
-    );
-  }
-}
-
-class SheetFileManager {
-  importSheet(fileName: string): Status {
-    return Status.Success;
-  }
-
-  exportSheet(sheetId: number, exportType: string): Status {
-    return Status.Success;
-  }
-
-  saveSheetAs(sheetId: number, fileName: string): Status {
-    return Status.Success;
+  changeBackgroundColor(color: string): void {
+    this.backgroundColor = color;
   }
 }
 
 class Relationship {
-  id: number;
-  fromTopicId: number;
-  toTopicId: number;
+  id: string;
+  pairTopic: { from: string; to: string };
   name: string;
-  private static nextId: number = 1;
 
-  constructor(fromTopicId: number, toTopicId: number) {
-    this.id = Relationship.nextId++;
-    this.fromTopicId = fromTopicId;
-    this.toTopicId = toTopicId;
+  constructor(fromTopicId: string, toTopicId: string) {
+    this.id = uuidv4();
+    this.pairTopic = { from: fromTopicId, to: toTopicId };
     this.name = defaultConfig.relationship.name;
   }
 
@@ -151,17 +109,16 @@ class Relationship {
 }
 
 class Topic {
-  id: number;
+  id: string;
   text: string;
   subTopics: Topic[];
   parent: Topic | null;
   shape: Shape;
   customText: CustomText;
   position: Position;
-  private static nextId: number = 1;
 
   constructor(text: string) {
-    this.id = Topic.nextId++;
+    this.id = uuidv4();
     this.text = text;
     this.subTopics = [];
     this.parent = null;
@@ -189,23 +146,19 @@ class Topic {
     this.subTopics.push(subTopic);
   }
 
-  deleteSubTopic(subTopicId: number): void {
+  deleteSubTopic(subTopicId: string): void {
     this.subTopics = this.subTopics.filter((topic) => topic.id !== subTopicId);
   }
 
-  duplicateSubTopic(subTopicId: number): void {
+  duplicateSubTopic(subTopicId: string): void {
     const subTopic = this.subTopics.find((topic) => topic.id === subTopicId);
-    if (!subTopic) throw new Error("Subtopic not found");
-
-    const newSubTopic = new Topic(subTopic.text);
+    const newSubTopic = new Topic(subTopic!.text);
     newSubTopic.parent = this;
     this.subTopics.push(newSubTopic);
   }
 
   changeParentTopic(newParentTopic: Topic): void {
-    if (!this.parent) throw new Error("Parent topic not found");
-
-    this.parent.subTopics = this.parent.subTopics.filter(
+    this.parent!.subTopics = this.parent!.subTopics.filter(
       (topic) => topic.id !== this.id
     );
     newParentTopic.subTopics.push(this);
@@ -246,6 +199,20 @@ class Topic {
 
   changeShapeBorder(border: string): void {
     this.shape.updateBorder(border);
+  }
+}
+
+class SheetFileManager {
+  exportSheets(sheetIds: string[], exportType: string): EnumStatus {
+    return EnumStatus.Success;
+  }
+
+  saveSheetAs(sheetIds: string[]): EnumStatus {
+    return EnumStatus.Success;
+  }
+
+  importSheet(sheet: Sheet): EnumStatus {
+    return EnumStatus.Success;
   }
 }
 
@@ -325,4 +292,4 @@ class Position {
   }
 }
 
-export { Xmind, Sheet, Topic, Relationship, Position, Status };
+export { Xmind, Sheet, Topic, Relationship, Position, EnumStatus };
